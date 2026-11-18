@@ -1,0 +1,103 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: services/assistant-api/Dockerfile
+    environment:
+      NODE_ENV: Development
+      PORT: "3000"
+      DATABASE_URL: postgresql://assistant:assistant-dev@postgres:5432/assistantdb
+      JWT_SECRET: local-development-only-signing-key-32-bytes-minimum
+      MODEL_WORKER_BASE_URL: http://model-worker:8081
+      AZURITE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
+    ports:
+      - "3000:3000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      azurite:
+        condition: service_healthy
+      model-worker:
+        condition: service_healthy
+    networks:
+      - app
+      - worker-private
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.status===200?0:1)).catch(()=>process.exit(1))"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  model-worker:
+    build:
+      context: .
+      dockerfile: services/model-worker/Dockerfile
+    environment:
+      NODE_ENV: Development
+      PORT: "8081"
+      AZURITE_CONNECTION_STRING: DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
+      PYTHONPATH: /app
+      CHECKPOINT_ROOT: /data/checkpoints
+      CORPUS_ROOT: /data/corpora
+      DATASET_ROOT: /data/datasets
+      WORKER_STATE_FILE: /data/job-state.json
+    depends_on:
+      azurite:
+        condition: service_healthy
+    volumes:
+      - model-data:/data
+    networks:
+      - worker-private
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8081/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 10
+      start_period: 30s
+
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: assistant
+      POSTGRES_PASSWORD: assistant-dev
+      POSTGRES_DB: assistantdb
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - app
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U assistant -d assistantdb"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite:3.37.0
+    command: azurite --blobHost 0.0.0.0 --location /data --skipApiVersionCheck
+    ports:
+      - "10000:10000"
+    volumes:
+      - azurite-data:/data
+    networks:
+      - app
+      - worker-private
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://127.0.0.1:10000/devstoreaccount1?comp=list',r=>process.exit(0)).on('error',()=>process.exit(1))"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+volumes:
+  postgres-data:
+  azurite-data:
+  model-data:
+
+networks:
+  app:
+    driver: bridge
+  worker-private:
+    driver: bridge
+    internal: true

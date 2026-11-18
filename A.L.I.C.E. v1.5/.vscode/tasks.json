@@ -1,0 +1,113 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "local-dependencies:start",
+      "type": "npm",
+      "script": "local-dependencies:start",
+      "options": {
+        "env": {
+          "PATH": "${env:HOME}/.local/share/node-v22.23.4/bin:${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "local-dependencies:stop",
+      "type": "npm",
+      "script": "local-dependencies:stop",
+      "options": {
+        "env": {
+          "PATH": "${env:HOME}/.local/share/node-v22.23.4/bin:${env:PATH}"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "db:migrate",
+      "type": "process",
+      "command": "${env:HOME}/.local/share/node-v22.23.4/bin/node",
+      "args": [
+        "--env-file=${workspaceFolder}/.env",
+        "${env:HOME}/.local/share/node-v22.23.4/lib/node_modules/npm/bin/npm-cli.js",
+        "run",
+        "db:migrate"
+      ],
+      "dependsOn": "local-dependencies:start",
+      "dependsOrder": "sequence",
+      "options": {
+        "cwd": "${workspaceFolder}",
+        "env": {
+          "PATH": "${env:HOME}/.local/share/node-v22.23.4/bin:${env:PATH}",
+          "NODE_ENV": "development"
+        }
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "assistant-api:dev",
+      "type": "npm",
+      "script": "dev",
+      "path": "services/assistant-api/",
+      "options": {
+        "env": {
+          "PATH": "${env:HOME}/.local/share/node-v22.23.4/bin:${env:PATH}"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "assistant-api",
+        "pattern": { "regexp": ".*" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "api.started",
+          "endsPattern": "api.started"
+        }
+      }
+    },
+    {
+      "label": "model-worker:dev",
+      "type": "shell",
+      "command": "PORT=8081 \"${env:HOME}/.local/share/node-v22.23.4/bin/node\" --env-file=\"${workspaceFolder}/.env\" --import tsx --watch src/worker.ts",
+      "options": {
+        "cwd": "${workspaceFolder}/services/model-worker",
+        "env": {
+          "PATH": "${workspaceFolder}/.venv/bin:${env:HOME}/.local/share/node-v22.23.4/bin:${env:PATH}",
+          "PORT": "8081"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "model-worker",
+        "pattern": { "regexp": ".*" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "worker.started",
+          "endsPattern": "worker.started"
+        }
+      }
+    },
+    {
+      "label": "assistant-web:dev",
+      "type": "npm",
+      "script": "dev",
+      "path": "services/assistant-web/",
+      "args": ["--", "--host", "localhost", "--port", "5173"],
+      "options": {
+        "env": {
+          "PATH": "${env:HOME}/.local/share/node-v22.23.4/bin:${env:PATH}"
+        }
+      },
+      "isBackground": true,
+      "problemMatcher": {
+        "owner": "vite",
+        "pattern": { "regexp": ".*" },
+        "background": {
+          "activeOnStart": true,
+          "beginsPattern": "ready in",
+          "endsPattern": "ready in"
+        }
+      }
+    }
+  ]
+}

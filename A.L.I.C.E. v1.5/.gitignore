@@ -1,0 +1,22 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.venv/
+*.pt
+
+# Node
+node_modules/
+**/dist/
+*.tsbuildinfo
+
+# Local configuration and secrets (copy .env.example to .env)
+.env
+.env.local
+!.env.example
+
+# Runtime data
+services/model-worker/.worker-data/
+.worker-data/
+build/
+dist/

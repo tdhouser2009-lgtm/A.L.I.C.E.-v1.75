@@ -1,0 +1,24 @@
+{
+  "name": "alice-workspace",
+  "version": "1.5.0",
+  "private": true,
+  "workspaces": [
+    "services/shared",
+    "services/assistant-api",
+    "services/model-worker",
+    "services/assistant-web"
+  ],
+  "scripts": {
+    "build": "npm run build --workspace=services/shared && npm run build --workspace=services/assistant-api --workspace=services/model-worker --workspace=services/assistant-web",
+    "typecheck": "npm run build --workspace=services/shared && npm run typecheck --workspaces --if-present",
+    "test": "npm run build --workspace=services/shared && npm run test --workspaces --if-present",
+    "build:backend": "npm run build --workspace=services/shared && npm run build --workspace=services/assistant-api && npm run build --workspace=services/model-worker",
+    "dev:api": "npm run dev --workspace=services/assistant-api",
+    "dev:worker": "npm run dev --workspace=services/model-worker",
+    "dev:web": "npm run dev --workspace=services/assistant-web",
+    "local-dependencies:start": "docker compose up -d postgres azurite",
+    "local-dependencies:stop": "docker compose stop postgres azurite",
+    "db:migrate": "npm run migrate --workspace=services/assistant-api",
+    "smoke": "node scripts/smoke-test.mjs"
+  }
+}

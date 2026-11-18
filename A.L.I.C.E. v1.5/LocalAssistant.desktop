@@ -1,0 +1,11 @@
+[Desktop Entry]
+Version=1.0
+Type=Application
+Name=Local Assistant
+Comment=Private local instruction-following and coding assistant
+# %k expands to this file's own path, so the launcher works wherever the project is checked out.
+# If your desktop environment does not support %k, run scripts/install-desktop-entry.sh instead.
+Exec=sh -c 'exec "$(dirname "$1")/scripts/launch-local-assistant.sh"' sh %k
+Icon=utilities-terminal
+Terminal=false
+Categories=Development;Utility;

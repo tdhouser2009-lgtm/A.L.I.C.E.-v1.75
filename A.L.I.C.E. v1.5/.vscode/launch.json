@@ -1,0 +1,64 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Local Model Desktop (debug)",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/app.py",
+      "python": "${workspaceFolder}/.venv/bin/python3",
+      "console": "integratedTerminal",
+      "justMyCode": true,
+      "envFile": "${workspaceFolder}/.env"
+    },
+    {
+      "name": "Assistant API (debug)",
+      "type": "pwa-node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/services/assistant-api",
+      "program": "${workspaceFolder}/services/assistant-api/src/server.ts",
+      "runtimeExecutable": "${env:HOME}/.local/share/node-v22.23.4/bin/node",
+      "runtimeArgs": ["--import", "tsx"],
+      "envFile": "${workspaceFolder}/.env",
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"],
+      "preLaunchTask": "db:migrate"
+    },
+    {
+      "name": "Model Worker (debug)",
+      "type": "pwa-node",
+      "request": "launch",
+      "cwd": "${workspaceFolder}/services/model-worker",
+      "program": "${workspaceFolder}/services/model-worker/src/worker.ts",
+      "runtimeExecutable": "${env:HOME}/.local/share/node-v22.23.4/bin/node",
+      "runtimeArgs": ["--import", "tsx"],
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "PORT": "8081",
+        "PATH": "${workspaceFolder}/.venv/bin:${env:PATH}",
+        "PYTHONPATH": "${workspaceFolder}"
+      },
+      "sourceMaps": true,
+      "skipFiles": ["<node_internals>/**"]
+    },
+    {
+      "name": "Assistant Web (debug)",
+      "type": "pwa-chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}/services/assistant-web",
+      "preLaunchTask": "assistant-web:dev"
+    }
+  ],
+  "compounds": [
+    {
+      "name": "Debug All Services",
+      "configurations": [
+        "Assistant API (debug)",
+        "Model Worker (debug)",
+        "Assistant Web (debug)"
+      ],
+      "stopAll": true
+    }
+  ]
+}
